@@ -187,6 +187,78 @@ const Key keymaps[][ROWS][COLS] PROGMEM = {
 /* Re-enable astyle's indent enforcement */
 // *INDENT-ON*
 
+
+/** macroAction dispatches keymap events that are tied to a macro
+    to that macro. It takes two uint8_t parameters.
+
+    The first is the macro being called (the entry in the 'enum' earlier in this file).
+    The second is the state of the keyswitch. You can use the keyswitch state to figure out
+    if the key has just been toggled on, is currently pressed or if it's just been released.
+
+    The 'switch' statement should have a 'case' for each entry of the macro enum.
+    Each 'case' statement should call out to a function to handle the macro in question.
+
+ */
+
+const macro_t *macroAction(uint8_t macroIndex, uint8_t keyState) {
+  switch (macroIndex) {
+
+  case MACRO_VERSION_INFO:
+    versionInfoMacro(keyState);
+    break;
+
+  case MACRO_ANY:
+    anyKeyMacro(keyState);
+    break;
+
+  case MACRO_LED_ON_AND_OFF:
+    turnLedsOnAndOff(keyState);
+    break;
+
+  case MACRO_LED_NEXT_PREV:
+    nextPrevLedMode(keyState, true);
+    break;  
+
+  case MACRO_SHIFTSHIFT:
+    sendShiftShift(keyState);
+    break;
+
+  case MACRO_WOX:
+    return MACRODOWN(D(LeftAlt),D(Space),W(25),U(Space),U(LeftAlt));
+  }
+  
+  return MACRO_NONE;
+}
+
+
+
+
+// These 'solid' color effect definitions define a rainbow of
+// LED color modes calibrated to draw 500mA or less on the
+// Keyboardio Model 01.
+
+
+static kaleidoscope::LEDSolidColor solidRed(160, 0, 0);
+//static kaleidoscope::LEDSolidColor solidOrange(140, 70, 0);
+//static kaleidoscope::LEDSolidColor solidYellow(130, 100, 0);
+static kaleidoscope::LEDSolidColor solidGreen(0, 160, 0);
+static kaleidoscope::LEDSolidColor solidBlue(0, 70, 130);
+//static kaleidoscope::LEDSolidColor solidIndigo(0, 0, 170);
+//static kaleidoscope::LEDSolidColor solidViolet(130, 0, 120);
+
+//My new Rainbow effect colors.
+
+static kaleidoscope::LEDRainbowWaveEffect Rainbow25_med(63,3);
+static kaleidoscope::LEDRainbowWaveEffect Rainbow50_med(127,3);
+static kaleidoscope::LEDRainbowWaveEffect Rainbow75_med(191,3);
+static kaleidoscope::LEDRainbowWaveEffect Rainbow100_med(255,3);
+
+static kaleidoscope::LEDRainbowWaveEffect Rainbow25_fast(63,1,2);
+static kaleidoscope::LEDRainbowWaveEffect Rainbow50_fast(127,1,2);
+static kaleidoscope::LEDRainbowWaveEffect Rainbow75_fast(191,1,2);
+static kaleidoscope::LEDRainbowWaveEffect Rainbow100_fast(255,1,2);
+
+
 /** versionInfoMacro handles the 'firmware version info' macro
  *  When a key bound to the macro is pressed, this macro
  *  prints out the firmware build information as virtual keystrokes
@@ -283,88 +355,6 @@ static void sendShiftShift(uint8_t key_state) {
   }
 }
 
-/*static void sendShiftShift(uint8_t key_state){
-  if(keyToggledOn(key_state)){
-    Macros.play(T(LeftShift), W(50), T(LeftShift));
-    kaleidoscope::hid::sendKeyboardReport();  
-  }
-}*/
-
-/** macroAction dispatches keymap events that are tied to a macro
-    to that macro. It takes two uint8_t parameters.
-
-    The first is the macro being called (the entry in the 'enum' earlier in this file).
-    The second is the state of the keyswitch. You can use the keyswitch state to figure out
-    if the key has just been toggled on, is currently pressed or if it's just been released.
-
-    The 'switch' statement should have a 'case' for each entry of the macro enum.
-    Each 'case' statement should call out to a function to handle the macro in question.
-
- */
-
-const macro_t *macroAction(uint8_t macroIndex, uint8_t keyState) {
-  switch (macroIndex) {
-
-  case MACRO_VERSION_INFO:
-    versionInfoMacro(keyState);
-    break;
-
-  case MACRO_ANY:
-    anyKeyMacro(keyState);
-    break;
-
-  case MACRO_LED_ON_AND_OFF:
-    turnLedsOnAndOff(keyState);
-    break;
-
-  case MACRO_LED_NEXT_PREV:
-    nextPrevLedMode(keyState, true);
-    break;  
-
-  case MACRO_SHIFTSHIFT:
-    sendShiftShift(keyState);
-    break;
-
-  case MACRO_WOX:
-    return MACRODOWN(D(LeftAlt),D(Space),W(25),U(Space),U(LeftAlt));
-  }
-  
-  return MACRO_NONE;
-}
-
-
-
-
-// These 'solid' color effect definitions define a rainbow of
-// LED color modes calibrated to draw 500mA or less on the
-// Keyboardio Model 01.
-
-
-static kaleidoscope::LEDSolidColor solidRed(160, 0, 0);
-//static kaleidoscope::LEDSolidColor solidOrange(140, 70, 0);
-//static kaleidoscope::LEDSolidColor solidYellow(130, 100, 0);
-static kaleidoscope::LEDSolidColor solidGreen(0, 160, 0);
-static kaleidoscope::LEDSolidColor solidBlue(0, 70, 130);
-//static kaleidoscope::LEDSolidColor solidIndigo(0, 0, 170);
-//static kaleidoscope::LEDSolidColor solidViolet(130, 0, 120);
-
-//My new Rainbow effect colors.
-
-static kaleidoscope::LEDRainbowWaveEffect Rainbow25_med(63,3);
-static kaleidoscope::LEDRainbowWaveEffect Rainbow50_med(127,3);
-static kaleidoscope::LEDRainbowWaveEffect Rainbow75_med(191,3);
-static kaleidoscope::LEDRainbowWaveEffect Rainbow100_med(255,3);
-
-static kaleidoscope::LEDRainbowWaveEffect Rainbow25_fast(63,1,2);
-static kaleidoscope::LEDRainbowWaveEffect Rainbow50_fast(127,1,2);
-static kaleidoscope::LEDRainbowWaveEffect Rainbow75_fast(191,1,2);
-static kaleidoscope::LEDRainbowWaveEffect Rainbow100_fast(255,1,2);
-
-//Cutom bootgreeting effect
-static kaleidoscope::BootGreetingEffect BootGreetingEffectHardcoded(0,6);
-
-
-
 /** toggleLedsOnSuspendResume toggles the LEDs off when the host goes to sleep,
  * and turns them back on when it wakes up.
  */
@@ -406,7 +396,7 @@ void setup() {
   // added in the order they're listed here.
   Kaleidoscope.use(
     // The boot greeting effect pulses the LED button for 10 seconds after the keyboard is first connected
-    &BootGreetingEffectHardcoded,
+    &BootGreetingEffect,
 
     // The hardware test mode, which can be invoked by tapping Prog, LED and the left Fn button at the same time.
     &TestMode,
@@ -515,6 +505,10 @@ void setup() {
   };
   //Set the map.
   SpaceCadet.map = spacecadetmap;
+
+  //Custom bootgreeting effect
+  BootGreetingEffect.key_row = 0;
+  BootGreetingEffect.key_col = 6;
 }
 
 /** loop is the second of the standard Arduino sketch functions.
