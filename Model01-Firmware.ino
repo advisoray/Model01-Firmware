@@ -83,7 +83,9 @@ enum { MACRO_VERSION_INFO,
        MACRO_LED_NEXT_PREV,
        MACRO_LED_ON_AND_OFF,
        MACRO_SHIFTSHIFT,
-       MACRO_WOX
+       MACRO_WOX,
+       MACRO_THREE,
+       MACRO_ALTINSERT,
      };
 
 
@@ -174,14 +176,14 @@ const Key keymaps[][ROWS][COLS] PROGMEM = {
   (___,      Key_F1,           Key_F2,      Key_F3,     Key_F4,        Key_F5,           /*Key_LEDEffectPrevious*/ M(MACRO_LED_NEXT_PREV),
    Key_Tab,  ___,              Key_mouseUp, ___,        Key_mouseBtnR, Key_mouseWarpEnd, Key_mouseWarpNE,
    Key_Home, Key_mouseL,       Key_mouseDn, Key_mouseR, Key_mouseBtnL, Key_mouseWarpNW,
-   Key_End,  Key_PrintScreen,  Key_Insert,  ___,        Key_mouseBtnM, Key_mouseWarpSW,  Key_mouseWarpSE,
+   Key_End,  Key_PrintScreen,  Key_Insert,  ___,        Key_mouseBtnM, Key_mouseWarpSW,  /*Key_mouseWarpSE*/ M(MACRO_ALTINSERT),
    Key_LeftAlt, Key_Delete, ___, ___,
    ___,
 
-   Consumer_ScanPreviousTrack, Key_F6,                 Key_F7,                   Key_F8,                   Key_F9,          Key_F10,          Key_F11,
-   Consumer_PlaySlashPause,    Consumer_ScanNextTrack, Key_LeftCurlyBracket,     Key_RightCurlyBracket,    Key_LeftBracket, Key_RightBracket, Key_F12,
+   /*Consumer_ScanPreviousTrack*/ M(MACRO_THREE), Key_F6,                 Key_F7,                   Key_F8,                   Key_F9,          Key_F10,          Key_F11,
+   ___,    Consumer_ScanNextTrack, Key_LeftCurlyBracket,     Key_RightCurlyBracket,    Key_LeftBracket, Key_RightBracket, Key_F12,
                                Key_LeftArrow,          Key_DownArrow,            Key_UpArrow,              Key_RightArrow,  ___,              ___,
-  M(MACRO_SHIFTSHIFT),          Consumer_Mute,          Consumer_VolumeDecrement, Consumer_VolumeIncrement, ___,             Key_Backslash,    Key_Pipe,
+  M(MACRO_SHIFTSHIFT),          Consumer_Mute,          Consumer_VolumeDecrement, LSHIFT(Key_Comma), LSHIFT(Key_Period),             Key_Backslash,    Key_Pipe,
    ___, ___, Key_Enter, ___,
    ___)
 
@@ -220,16 +222,23 @@ const macro_t *macroAction(uint8_t macroIndex, uint8_t keyState) {
 
   case MACRO_LED_NEXT_PREV:
     nextPrevLedMode(keyState, true);
-    break;
+    break;  
 
   case MACRO_SHIFTSHIFT:
     sendShiftShift(keyState);
     break;
 
   case MACRO_WOX:
-    return MACRODOWN(D(LeftAlt), D(Space), W(25), U(Space), U(LeftAlt));
-  }
+    return MACRODOWN(D(LeftAlt),D(Space),W(25),U(Space),U(LeftAlt));
 
+  case MACRO_ALTINSERT:
+    return MACRODOWN(D(LeftAlt),D(Insert),W(25),U(Insert),U(LeftAlt));
+
+  case MACRO_THREE:
+    macroThree(keyState);
+    break;
+  }
+  
   return MACRO_NONE;
 }
 
@@ -251,15 +260,15 @@ static kaleidoscope::LEDSolidColor solidBlue(0, 70, 130);
 
 //My new Rainbow effect colors.
 
-static kaleidoscope::LEDRainbowWaveEffect Rainbow25_med(63, 3);
-static kaleidoscope::LEDRainbowWaveEffect Rainbow50_med(127, 3);
-static kaleidoscope::LEDRainbowWaveEffect Rainbow75_med(191, 3);
-static kaleidoscope::LEDRainbowWaveEffect Rainbow100_med(255, 3);
+static kaleidoscope::LEDRainbowWaveEffect Rainbow25_med(63,3);
+static kaleidoscope::LEDRainbowWaveEffect Rainbow50_med(127,3);
+static kaleidoscope::LEDRainbowWaveEffect Rainbow75_med(191,3);
+static kaleidoscope::LEDRainbowWaveEffect Rainbow100_med(255,3);
 
-static kaleidoscope::LEDRainbowWaveEffect Rainbow25_fast(63, 1, 2);
-static kaleidoscope::LEDRainbowWaveEffect Rainbow50_fast(127, 1, 2);
-static kaleidoscope::LEDRainbowWaveEffect Rainbow75_fast(191, 1, 2);
-static kaleidoscope::LEDRainbowWaveEffect Rainbow100_fast(255, 1, 2);
+static kaleidoscope::LEDRainbowWaveEffect Rainbow25_fast(63,1,2);
+static kaleidoscope::LEDRainbowWaveEffect Rainbow50_fast(127,1,2);
+static kaleidoscope::LEDRainbowWaveEffect Rainbow75_fast(191,1,2);
+static kaleidoscope::LEDRainbowWaveEffect Rainbow100_fast(255,1,2);
 
 
 /** versionInfoMacro handles the 'firmware version info' macro
@@ -295,8 +304,8 @@ static void anyKeyMacro(uint8_t keyState) {
 static int lastLedMode = -1;
 
 /** turnLedsOnAndOff turns off LEDs, saving the current state, and turns them back on
- *  expanded by aedifica from a sample algernon posted at
- *  https://community.keyboard.io/t/how-does-one-make-a-key-that-turns-the-leds-off/554/2
+ *  expanded by aedifica from a sample algernon posted at 
+ *  https://community.keyboard.io/t/how-does-one-make-a-key-that-turns-the-leds-off/554/2 
  *  with tips from merlin
  */
 static void turnLedsOnAndOff(uint8_t key_state) {
@@ -304,7 +313,7 @@ static void turnLedsOnAndOff(uint8_t key_state) {
     if (LEDControl.get_mode() != &LEDOff) { /* if LEDs are on */
       lastLedMode = LEDControl.get_mode_index(); /* first, store the current mode */
       LEDOff.activate(); /* then activate the "off" mode */
-    } else if (lastLedMode >= 0) {
+    } else if(lastLedMode >= 0) {
       LEDControl.set_mode(lastLedMode); /* set our LED to the last mode */
     } else {
       //Either do the first item on the list that isn't the Off mode...
@@ -321,7 +330,7 @@ static void turnLedsOnAndOff(uint8_t key_state) {
 static void nextPrevLedMode(uint8_t key_state, bool skipOff) {
   //Ensure a key was pressed
   if (keyToggledOn(key_state)) {
-    if (
+    if(
       kaleidoscope::hid::wasModifierKeyActive(Key_LeftShift)
       || kaleidoscope::hid::wasModifierKeyActive(Key_RightShift)
     ) {
@@ -335,7 +344,7 @@ static void nextPrevLedMode(uint8_t key_state, bool skipOff) {
       //No shift, so go forward
       do {
         LEDControl.next_mode();
-      } while (
+     } while (
         skipOff && LEDControl.get_mode() == &LEDOff
       );
     }
@@ -349,12 +358,46 @@ static void sendShiftShift(uint8_t key_state) {
   //Ensure a key was pressed
   if (keyToggledOn(key_state)) {
     bool sc = SpaceCadet.active();
-    if (sc) {
+    if(sc){
       SpaceCadet.disable();
     }
-    Macros.play(MACRO(T(LeftShift), W(50), T(LeftShift)));
-    if (sc) {
+    Macros.play(MACRO(T(LeftShift),W(50),T(LeftShift)));
+    if(sc){
       SpaceCadet.enable();
+    }
+  }
+}
+
+/* Send British pound sign on ctrl+3 for US-QWERTY layout under windows */
+static void macroThree(uint8_t key_state) {
+  /* Ensure we only fire on initial keypress. Don't handle repeat events */
+  if (keyToggledOn(key_state)) {
+    if(
+      kaleidoscope::hid::wasModifierKeyActive(Key_LeftShift)
+      || kaleidoscope::hid::wasModifierKeyActive(Key_RightShift)
+    ) {
+      /* Send a shifted 3: hash sign */
+      Macros.play(MACRO(D(LeftShift),T(3),U(LeftShift)));
+    } else if(
+      kaleidoscope::hid::wasModifierKeyActive(Key_LeftControl)
+      || kaleidoscope::hid::wasModifierKeyActive(Key_RightControl)
+    ) {
+      /* This is windows-only: type alt+0163 on numpad to get British Pound symbol */
+       Macros.play(
+        MACRO(
+          D(LeftAlt),
+          W(25),
+          T(Keypad0),
+          T(Keypad1),
+          T(Keypad6),
+          T(Keypad3),
+          W(25),
+          U(LeftAlt)
+        )
+      );
+    } else {
+      /* Tap the 3 if unshifted and un-controlled */
+      Macros.play(MACRO(T(3)));
     }
   }
 }
@@ -430,7 +473,7 @@ void setup() {
 
     // The rainbow wave effect lights up your keyboard with all the colors of a rainbow
     // and slowly moves the rainbow across your keyboard
-    // &LEDRainbowWaveEffect,
+   // &LEDRainbowWaveEffect,
 
     // The chase effect follows the adventure of a blue pixel which chases a red pixel across
     // your keyboard. Spoiler: the blue pixel never catches the red pixel
@@ -438,11 +481,11 @@ void setup() {
 
     // These static effects turn your keyboard's LEDs a variety of colors
     &solidRed,
-    //&solidOrange,
-    //&solidYellow,
-    &solidGreen,
-    &solidBlue,
-    //&solidIndigo,
+    //&solidOrange, 
+    //&solidYellow, 
+    &solidGreen, 
+    &solidBlue, 
+    //&solidIndigo, 
     //&solidViolet,
 
     // The breathe effect slowly pulses all of the LEDs on your keyboard
@@ -468,7 +511,7 @@ void setup() {
     //Use SpaceCadet
     &SpaceCadet,
 
-    //The HostPowerManagement plugin enables waking up the host from suspend,
+	  //The HostPowerManagement plugin enables waking up the host from suspend,
     // and allows us to turn LEDs off when it goes to sleep.
     &HostPowerManagement
   );
@@ -484,7 +527,7 @@ void setup() {
   // This draws more than 500mA, but looks much nicer than a dimmer effect
   LEDRainbowEffect.brightness(150);
   //LEDRainbowWaveEffect.brightness(150);
-
+  
   // The LED Stalker mode has a few effects. The one we like is
   // called 'BlazingTrail'. For details on other options,
   // see https://github.com/keyboardio/Kaleidoscope-LED-Stalker
@@ -502,7 +545,7 @@ void setup() {
   //Setting is {KeyThatWasPressed, AlternativeKeyToSend, TimeoutInMS}
   //Note: must end with the SPACECADET_MAP_END delimiter
   static kaleidoscope::SpaceCadet::KeyBinding spacecadetmap[] = {
-    {Key_LeftShift, Key_LeftParen, 250}
+    {Key_LeftShift, Key_LeftParen, 200}
     , {Key_RightShift, Key_RightParen, 250}
     , {Key_LeftGui, Key_LeftCurlyBracket, 250}
     , {Key_LeftAlt, Key_RightCurlyBracket, 250}
